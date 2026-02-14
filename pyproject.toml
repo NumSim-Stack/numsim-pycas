@@ -7,9 +7,39 @@ name = "numsim-cas"
 version = "0.1.0"
 description = "Python bindings for numsim-cas symbolic algebra library"
 requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "numsim-cas authors"}]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
 
 [tool.scikit-build]
 cmake.build-type = "Release"
+
+# For local development: point to sibling numsim-cas checkout
+# Override via: pip install -e . -Ccmake.define.NUMSIM_CAS_SOURCE_DIR=../numsim-cas
+[tool.scikit-build.cmake.define]
+NUMSIM_CAS_SOURCE_DIR = {env = "NUMSIM_CAS_SOURCE_DIR", default = ""}
+
+[tool.cibuildwheel]
+# C++23 requires modern compilers — skip older/exotic platforms
+build = "cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux_i686 *-manylinux_i686 *-win32"
+test-requires = "pytest"
+test-command = "pytest {project}/tests -v"
+
+[tool.cibuildwheel.linux]
+# manylinux_2_28 ships GCC 12+ which supports C++23
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.macos]
+# Target macOS 13+ for C++23 std::ranges support in libc++
+environment = {MACOSX_DEPLOYMENT_TARGET = "13.0"}
+
+[tool.cibuildwheel.windows]
+# MSVC 2022 (17.5+) supports C++23 features used
+# No special config needed — GitHub Actions windows-2022 ships this
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

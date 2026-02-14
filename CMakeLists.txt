@@ -6,12 +6,25 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(FetchContent)
 
-# numsim-cas (suppress its tests, build as STATIC to bundle into _core.so)
+# numsim-cas: use local path for development, git for CI/packaging
 set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(numsim_cas
-  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../numsim-cas"
-)
+
+set(NUMSIM_CAS_SOURCE_DIR "" CACHE PATH
+    "Local path to numsim-cas source tree (leave empty to fetch from git)")
+set(NUMSIM_CAS_GIT_REPO "https://github.com/OWNER/numsim-cas.git" CACHE STRING
+    "Git repository URL for numsim-cas")
+set(NUMSIM_CAS_GIT_TAG "move_to_virtual" CACHE STRING
+    "Git tag/branch for numsim-cas")
+
+if(NUMSIM_CAS_SOURCE_DIR)
+  FetchContent_Declare(numsim_cas SOURCE_DIR "${NUMSIM_CAS_SOURCE_DIR}")
+else()
+  FetchContent_Declare(numsim_cas
+    GIT_REPOSITORY "${NUMSIM_CAS_GIT_REPO}"
+    GIT_TAG "${NUMSIM_CAS_GIT_TAG}"
+  )
+endif()
 FetchContent_MakeAvailable(numsim_cas)
 
 # pybind11
@@ -21,8 +34,6 @@ FetchContent_Declare(pybind11
 )
 FetchContent_MakeAvailable(pybind11)
 
-# Disable LTO: numsim-cas relies on implicit template instantiation in .cpp
-# files via inline virtual functions; LTO defers this and breaks linkage.
 pybind11_add_module(_core NO_EXTRAS
   src/module.cpp
   src/bind_scalar.cpp
@@ -31,11 +42,11 @@ pybind11_add_module(_core NO_EXTRAS
   src/bind_cross_domain.cpp
 )
 target_link_libraries(_core PRIVATE NumSim_CAS)
-target_link_options(_core PRIVATE
-  "LINKER:--whole-archive"
-  $<TARGET_FILE:NumSim_CAS>
-  "LINKER:--no-whole-archive"
-)
 target_include_directories(_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+# MSVC-specific: silence C4251 warnings from pybind11/STL
+if(MSVC)
+  target_compile_options(_core PRIVATE /W3 /wd4251)
+endif()
 
 install(TARGETS _core DESTINATION numsim_cas)

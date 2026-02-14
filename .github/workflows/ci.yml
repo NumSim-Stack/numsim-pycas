@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: "3.12"
+          - os: ubuntu-24.04
+            python: "3.11"
+          - os: ubuntu-24.04
+            python: "3.10"
+          - os: macos-14
+            python: "3.12"
+          - os: windows-2022
+            python: "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Check out numsim-cas alongside (sibling directory)
+      - uses: actions/checkout@v4
+        with:
+          repository: OWNER/numsim-cas   # TODO: replace with actual repo
+          ref: move_to_virtual
+          path: ../numsim-cas
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install build dependencies
+        run: pip install scikit-build-core pybind11 pytest
+
+      - name: Build and install
+        run: pip install -e ".[test]" --no-build-isolation
+        env:
+          NUMSIM_CAS_SOURCE_DIR: ${{ github.workspace }}/../numsim-cas
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+      - name: Run examples
+        run: |
+          python examples/01_scalar_basics.py
+          python examples/02_differentiation.py
+          python examples/03_tensor_algebra.py
+          python examples/04_tensor_to_scalar.py
+          python examples/05_cross_domain.py
