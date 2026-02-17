@@ -12,7 +12,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 set(NUMSIM_CAS_SOURCE_DIR "" CACHE PATH
     "Local path to numsim-cas source tree (leave empty to fetch from git)")
-set(NUMSIM_CAS_GIT_REPO "https://github.com/OWNER/numsim-cas.git" CACHE STRING
+set(NUMSIM_CAS_GIT_REPO "https://github.com/NumSim-Stack/numsim-cas.git" CACHE STRING
     "Git repository URL for numsim-cas")
 set(NUMSIM_CAS_GIT_TAG "move_to_virtual" CACHE STRING
     "Git tag/branch for numsim-cas")
