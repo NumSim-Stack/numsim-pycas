@@ -28,12 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Check out numsim-cas alongside (sibling directory)
       - uses: actions/checkout@v4
         with:
           repository: OWNER/numsim-cas   # TODO: replace with actual repo
           ref: move_to_virtual
-          path: ../numsim-cas
+          path: numsim-cas-src
 
       - uses: actions/setup-python@v5
         with:
@@ -45,7 +44,7 @@ jobs:
       - name: Build and install
         run: pip install -e ".[test]" --no-build-isolation
         env:
-          NUMSIM_CAS_SOURCE_DIR: ${{ github.workspace }}/../numsim-cas
+          NUMSIM_CAS_SOURCE_DIR: ${{ github.workspace }}/numsim-cas-src
 
       - name: Run tests
         run: pytest tests/ -v

@@ -35,7 +35,8 @@ jobs:
         run: cibuildwheel --output-dir wheelhouse
         env:
           NUMSIM_CAS_SOURCE_DIR: ${{ github.workspace }}/numsim-cas-src
-          # macOS: build universal2 (x86_64 + arm64)
+          # Pass env into Linux Docker containers
+          CIBW_ENVIRONMENT_PASS_LINUX: NUMSIM_CAS_SOURCE_DIR
           CIBW_ARCHS_MACOS: "arm64 x86_64"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_WINDOWS: "AMD64"
