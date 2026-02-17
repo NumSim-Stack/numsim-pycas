@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: https://github.com/NumSim-Stack/numsim-cas.git
+          repository: NumSim-Stack/numsim-cas
           ref: move_to_virtual
           path: numsim-cas-src
 
