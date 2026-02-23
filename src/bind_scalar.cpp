@@ -12,6 +12,7 @@
 #include <numsim_cas/scalar/scalar_diff.h>
 #include <numsim_cas/scalar/visitors/scalar_differentiation.h>
 #include <numsim_cas/scalar/visitors/scalar_evaluator.h>
+#include <numsim_cas/scalar/scalar_assume.h>
 
 namespace cas = numsim::cas;
 
@@ -53,6 +54,46 @@ void bind_scalar(py::module_ &m, py::class_<ScalarExpr> &cls) {
     m.def("is_constant", [](ScalarExpr const &e) {
         return cas::is_constant(e);
     }, py::arg("expr"), "Check if expression is a constant");
+
+    // Assumptions — set
+    m.def("assume_positive", [](ScalarExpr const &e) {
+        cas::assume(e, cas::positive{});
+    }, py::arg("expr"), "Assume expression is positive");
+    m.def("assume_negative", [](ScalarExpr const &e) {
+        cas::assume(e, cas::negative{});
+    }, py::arg("expr"), "Assume expression is negative");
+    m.def("assume_nonnegative", [](ScalarExpr const &e) {
+        cas::assume(e, cas::nonnegative{});
+    }, py::arg("expr"), "Assume expression is nonnegative");
+    m.def("assume_nonpositive", [](ScalarExpr const &e) {
+        cas::assume(e, cas::nonpositive{});
+    }, py::arg("expr"), "Assume expression is nonpositive");
+    m.def("assume_nonzero", [](ScalarExpr const &e) {
+        cas::assume(e, cas::nonzero{});
+    }, py::arg("expr"), "Assume expression is nonzero");
+    m.def("assume_integer", [](ScalarExpr const &e) {
+        cas::assume(e, cas::integer{});
+    }, py::arg("expr"), "Assume expression is an integer");
+    m.def("assume_real", [](ScalarExpr const &e) {
+        cas::assume(e, cas::real_tag{});
+    }, py::arg("expr"), "Assume expression is real");
+
+    // Assumptions — query
+    m.def("is_positive", [](ScalarExpr const &e) {
+        return cas::is_positive(e);
+    }, py::arg("expr"), "Check if expression is positive");
+    m.def("is_negative", [](ScalarExpr const &e) {
+        return cas::is_negative(e);
+    }, py::arg("expr"), "Check if expression is negative");
+    m.def("is_nonnegative", [](ScalarExpr const &e) {
+        return cas::is_nonnegative(e);
+    }, py::arg("expr"), "Check if expression is nonnegative");
+    m.def("is_nonpositive", [](ScalarExpr const &e) {
+        return cas::is_nonpositive(e);
+    }, py::arg("expr"), "Check if expression is nonpositive");
+    m.def("is_nonzero", [](ScalarExpr const &e) {
+        return cas::is_nonzero(e);
+    }, py::arg("expr"), "Check if expression is nonzero");
 
     // Differentiation
     m.def("diff", [](ScalarExpr const &expr, ScalarExpr const &wrt) -> ScalarExpr {

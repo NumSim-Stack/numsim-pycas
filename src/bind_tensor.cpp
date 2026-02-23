@@ -7,12 +7,14 @@
 #include <numsim_cas/tensor/identity_tensor.h>
 #include <numsim_cas/tensor/projection_tensor.h>
 #include <numsim_cas/tensor/tensor_operators.h>
+#include <numsim_cas/tensor/tensor_assume.h>
 #include <numsim_cas/tensor/tensor_functions.h>
 #include <numsim_cas/tensor/tensor_std.h>
 #include <numsim_cas/tensor/tensor_negative.h>
 #include <numsim_cas/tensor/functions/tensor_pow.h>
 #include <numsim_cas/scalar/scalar_constant.h>
 #include <numsim_cas/tensor/sequence.h>
+#include <numsim_cas/tensor/visitors/tensor_differentiation.h>
 
 namespace cas = numsim::cas;
 
@@ -105,11 +107,30 @@ void bind_tensor(py::module_ &m, py::class_<TensorExpr> &cls) {
     cls.def("__sub__", [](TensorExpr const &a, TensorExpr const &b) -> TensorExpr { return a - b; });
     cls.def("__mul__", [](TensorExpr const &a, TensorExpr const &b) -> TensorExpr { return a * b; });
     cls.def("__neg__", [](TensorExpr const &a) -> TensorExpr { return -a; });
+    cls.def("__pow__", [](TensorExpr const &a, ScalarExpr const &b) -> TensorExpr {
+        return cas::make_expression<cas::tensor_pow>(a, b);
+    });
+    cls.def("__pow__", [](TensorExpr const &a, int b) -> TensorExpr {
+        return cas::make_expression<cas::tensor_pow>(
+            a, cas::make_expression<cas::scalar_constant>(b));
+    });
 
     // Tensor functions (module-level)
     m.def("dev", [](TensorExpr const &e) -> TensorExpr {
         return cas::dev(e);
     }, py::arg("expr"), "Deviatoric part of a rank-2 tensor");
+
+    m.def("sym", [](TensorExpr const &e) -> TensorExpr {
+        return cas::sym(e);
+    }, py::arg("expr"), "Symmetric part of a rank-2 tensor");
+
+    m.def("vol", [](TensorExpr const &e) -> TensorExpr {
+        return cas::vol(e);
+    }, py::arg("expr"), "Volumetric part of a rank-2 tensor");
+
+    m.def("skew", [](TensorExpr const &e) -> TensorExpr {
+        return cas::skew(e);
+    }, py::arg("expr"), "Skew-symmetric part of a rank-2 tensor");
 
     m.def("inv", [](TensorExpr const &e) -> TensorExpr {
         return cas::inv(e);
@@ -153,6 +174,13 @@ void bind_tensor(py::module_ &m, py::class_<TensorExpr> &cls) {
     m.def("P_harm", [](std::size_t d, std::size_t r) -> TensorExpr { return cas::P_harm(d, r); },
           py::arg("dim"), py::arg("rank") = 2, "Harmonic projector");
 
+    // Tensor differentiation
+    m.def("diff", [](TensorExpr const &expr, TensorExpr const &wrt) -> TensorExpr {
+        cas::tensor_differentiation d(wrt);
+        return d.apply(expr);
+    }, py::arg("expr"), py::arg("wrt"),
+    "Differentiate a tensor expression with respect to a tensor variable");
+
     // Tensor pow
     m.def("pow", [](TensorExpr const &base, ScalarExpr const &exp) -> TensorExpr {
         return cas::make_expression<cas::tensor_pow>(base, exp);
@@ -161,4 +189,23 @@ void bind_tensor(py::module_ &m, py::class_<TensorExpr> &cls) {
         return cas::make_expression<cas::tensor_pow>(
             base, cas::make_expression<cas::scalar_constant>(exp));
     }, py::arg("base"), py::arg("exp"));
+
+    // Tensor space assumptions
+    m.def("assume_symmetric", [](TensorExpr const &e) { cas::assume_symmetric(e); },
+          py::arg("expr"), "Assume tensor is symmetric");
+    m.def("assume_skew", [](TensorExpr const &e) { cas::assume_skew(e); },
+          py::arg("expr"), "Assume tensor is skew-symmetric");
+    m.def("assume_volumetric", [](TensorExpr const &e) { cas::assume_volumetric(e); },
+          py::arg("expr"), "Assume tensor is volumetric (implies symmetric)");
+    m.def("assume_deviatoric", [](TensorExpr const &e) { cas::assume_deviatoric(e); },
+          py::arg("expr"), "Assume tensor is deviatoric (implies symmetric)");
+
+    m.def("is_symmetric", [](TensorExpr const &e) { return cas::is_symmetric(e); },
+          py::arg("expr"), "Check if tensor is assumed symmetric");
+    m.def("is_skew", [](TensorExpr const &e) { return cas::is_skew(e); },
+          py::arg("expr"), "Check if tensor is assumed skew-symmetric");
+    m.def("is_volumetric", [](TensorExpr const &e) { return cas::is_volumetric(e); },
+          py::arg("expr"), "Check if tensor is assumed volumetric");
+    m.def("is_deviatoric", [](TensorExpr const &e) { return cas::is_deviatoric(e); },
+          py::arg("expr"), "Check if tensor is assumed deviatoric");
 }

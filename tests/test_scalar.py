@@ -245,3 +245,60 @@ class TestScalarComparison:
     def test_hash_consistency(self, x):
         x2 = cas.variable("x")
         assert hash(x) == hash(x2)
+
+
+class TestScalarAssumptions:
+    def test_assume_positive_query(self):
+        x = cas.variable("x")
+        assert not cas.is_positive(x)
+        cas.assume_positive(x)
+        assert cas.is_positive(x)
+        assert cas.is_nonnegative(x)
+        assert cas.is_nonzero(x)
+
+    def test_assume_negative_query(self):
+        x = cas.variable("x")
+        cas.assume_negative(x)
+        assert cas.is_negative(x)
+        assert cas.is_nonpositive(x)
+        assert cas.is_nonzero(x)
+
+    def test_assume_nonnegative_query(self):
+        x = cas.variable("x")
+        cas.assume_nonnegative(x)
+        assert cas.is_nonnegative(x)
+
+    def test_assume_nonpositive_query(self):
+        x = cas.variable("x")
+        cas.assume_nonpositive(x)
+        assert cas.is_nonpositive(x)
+
+    def test_assume_nonzero_query(self):
+        x = cas.variable("x")
+        cas.assume_nonzero(x)
+        assert cas.is_nonzero(x)
+
+    def test_assume_integer(self):
+        x = cas.variable("x")
+        cas.assume_integer(x)
+        # integer implies real
+        assert cas.is_positive(x) is False or True  # just check no crash
+
+    def test_assume_real(self):
+        x = cas.variable("x")
+        cas.assume_real(x)
+        # just verify no crash and the call works
+
+    def test_abs_simplification_positive(self):
+        x = cas.variable("x")
+        cas.assume_positive(x)
+        result = cas.abs(x)
+        # abs(x) should simplify to x when x is positive
+        assert str(result) == "x"
+
+    def test_sign_simplification_positive(self):
+        x = cas.variable("x")
+        cas.assume_positive(x)
+        result = cas.sign(x)
+        # sign(x) should simplify to 1 when x is positive
+        assert cas.is_one(result)

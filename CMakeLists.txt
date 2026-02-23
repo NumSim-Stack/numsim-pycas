@@ -40,6 +40,7 @@ pybind11_add_module(_core NO_EXTRAS
   src/bind_tensor.cpp
   src/bind_tensor_to_scalar.cpp
   src/bind_cross_domain.cpp
+  src/bind_diff_bridge.cpp
 )
 target_link_libraries(_core PRIVATE NumSim_CAS)
 target_include_directories(_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

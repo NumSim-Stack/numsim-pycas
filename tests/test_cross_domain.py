@@ -72,6 +72,40 @@ class TestScalarT2S:
         assert isinstance(result, cas.T2SExpr)
 
 
+class TestT2SDifferentiation:
+    """Differentiate tensor-to-scalar expressions w.r.t. tensors."""
+
+    def test_diff_trace(self):
+        """d(tr(C))/dC = I."""
+        C = cas.tensor_variable("C", dim=3, rank=2)
+        result = cas.diff(cas.trace(C), C)
+        assert isinstance(result, cas.TensorExpr)
+        assert str(result) == "I"
+
+    def test_diff_dot(self):
+        """d(C:C)/dC = 2*C."""
+        C = cas.tensor_variable("C", dim=3, rank=2)
+        result = cas.diff(cas.dot(C), C)
+        assert isinstance(result, cas.TensorExpr)
+        assert "2" in str(result) and "C" in str(result)
+
+    def test_diff_scalar_times_trace(self):
+        """d(mu*tr(C))/dC = mu*I."""
+        C = cas.tensor_variable("C", dim=3, rank=2)
+        mu = cas.variable("mu")
+        result = cas.diff(mu * cas.trace(C), C)
+        assert isinstance(result, cas.TensorExpr)
+        s = str(result)
+        assert "mu" in s and "I" in s
+
+    def test_diff_returns_tensor(self):
+        """diff(t2s, tensor) must return TensorExpr, not T2SExpr."""
+        C = cas.tensor_variable("C", dim=3, rank=2)
+        result = cas.diff(cas.trace(C), C)
+        assert isinstance(result, cas.TensorExpr)
+        assert not isinstance(result, cas.T2SExpr)
+
+
 class TestMixedExpressions:
     def test_trace_addition(self):
         T = cas.tensor_variable("T", dim=3, rank=2)

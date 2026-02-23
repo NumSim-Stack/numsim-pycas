@@ -9,6 +9,7 @@
 #include <numsim_cas/tensor_to_scalar/tensor_to_scalar_operators.h>
 #include <numsim_cas/tensor_to_scalar/tensor_to_scalar_std.h>
 #include <numsim_cas/tensor_to_scalar/tensor_to_scalar_scalar_wrapper.h>
+#include <numsim_cas/tensor_to_scalar/visitors/tensor_to_scalar_differentiation.h>
 
 namespace cas = numsim::cas;
 
@@ -43,11 +44,11 @@ void bind_cross_domain(py::module_ &m,
     });
     // ScalarExpr - T2SExpr -> T2SExpr
     scalar_cls.def("__sub__", [](ScalarExpr const &a, T2SExpr const &b) -> T2SExpr {
-        return a + (-b);
+        return a - b;
     });
     // T2SExpr - ScalarExpr -> T2SExpr
     t2s_cls.def("__sub__", [](T2SExpr const &a, ScalarExpr const &b) -> T2SExpr {
-        return a + (-b);
+        return a - b;
     });
 
     // ScalarExpr * T2SExpr -> T2SExpr
@@ -74,6 +75,13 @@ void bind_cross_domain(py::module_ &m,
     t2s_cls.def("__radd__", [](T2SExpr const &a, ScalarExpr const &b) -> T2SExpr {
         return b + a;
     });
+
+    // Differentiation: T2SExpr w.r.t. TensorExpr -> TensorExpr
+    m.def("diff", [](T2SExpr const &expr, TensorExpr const &wrt) -> TensorExpr {
+        cas::tensor_to_scalar_differentiation d(wrt);
+        return d.apply(expr);
+    }, py::arg("expr"), py::arg("wrt"),
+    "Differentiate a tensor-to-scalar expression with respect to a tensor variable");
 
     // TensorExpr with int/float (via ScalarExpr)
     tensor_cls.def("__mul__", [](TensorExpr const &a, double b) -> TensorExpr {
