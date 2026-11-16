@@ -5,3 +5,13 @@ __pycache__/
 *.so
 *.pyc
 .pytest_cache/
+
+# virtual environments (never inside the package directory)
+venv/
+env/
+numsim_cas_env/
+/numsim_cas/bin/
+/numsim_cas/lib/
+/numsim_cas/lib64
+/numsim_cas/include/
+/numsim_cas/pyvenv.cfg
